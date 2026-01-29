@@ -24,6 +24,7 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Can access: browser APIs (only in the browser phase)
 - Ships to browser: **yes** (it’s part of the client JS chunks)
 - Regardless of the rendering type (SSG or SSR), server and client components are both rendered on the server, and client components will reexecute it on the browser after hydration completed.
+- Avoid fetching data in client component as it can lead to double fetching (once on server, once on client). Prefer fetching data in Server Components and pass as props.
 
 ### Why did `console.log` inside a Client Component print on the server?
 
@@ -51,6 +52,7 @@ Important gotcha:
 
 - **SSG**: HTML is generated ahead of time (build time or cached ahead of requests).
 - **SSR**: HTML is generated at request time.
+- **SSG**: Data frozen at build time, no automatic freshness unless revalidation is set up.
 - “HTML of both client and server components are generated during build time” is only true for **SSG** routes.
 - For **SSR**, that HTML is generated **per request**.
 
