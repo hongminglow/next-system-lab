@@ -1,4 +1,4 @@
-import { ServerProbe } from "../probes/ServerProbe";
+import { ServerProbe } from "../../../probes/ServerProbe";
 import { cacheLife } from "next/cache";
 
 export default async function Page() {
@@ -6,5 +6,5 @@ export default async function Page() {
 	cacheLife("max");
 	const serverRenderedAt = new Date().toISOString();
 
-	return <ServerProbe label="SSG (cached via use cache)" serverRenderedAt={serverRenderedAt} />;
+	return <ServerProbe label="A/SSG (cached via use cache)" serverRenderedAt={serverRenderedAt} />;
 }

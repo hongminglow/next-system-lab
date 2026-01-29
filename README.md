@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a small Next.js “lab” app used to test and understand how Next works behind the scenes (RSC payload, SSG/SSR, caching, etc.).
 
 ## Getting Started
 
@@ -16,7 +16,16 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Experiments
+
+Open [http://localhost:3000/tests](http://localhost:3000/tests) to see the list.
+
+- A) Rendering (Server vs Client Components): `/tests/rendering`
+- B) `use cache` directive: `/tests/use-cache`
+- C) React `cache()` vs `fetch(..., { cache: 'force-cache' })`: `/tests/cache-vs-force-cache`
+- D) CMS strategy: SSR vs ISR vs “PPR-style”: `/tests/cms`
+
+You can start editing the pages under `app/tests/*`. The dev server auto-updates as you edit.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

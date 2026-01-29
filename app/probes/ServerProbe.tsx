@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { ClientProbe } from "./ClientProbe";
 
-export function ServerProbe({ label }: { label: string }) {
-	const serverRenderedAt = new Date().toISOString();
-
+export function ServerProbe({ label, serverRenderedAt }: { label: string; serverRenderedAt: string }) {
 	console.log(`[ServerProbe] render label=${label} at=${serverRenderedAt} pid=${process.pid}`);
 
 	return (

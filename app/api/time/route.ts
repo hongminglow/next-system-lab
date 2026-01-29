@@ -1,0 +1,6 @@
+export async function GET() {
+	return Response.json({
+		now: new Date().toISOString(),
+		rand: Math.random().toString(16).slice(2),
+	});
+}
