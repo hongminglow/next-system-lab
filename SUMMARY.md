@@ -21,6 +21,7 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Runs: **server only**
 - Can access: databases, filesystem, private env vars, `cookies()`/`headers()` etc.
 - Ships to browser: **no** (except serialized results)
+- Not allowed to execute hooks or Browser API
 
 **Client Component** (`"use client"`)
 
@@ -29,6 +30,8 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Ships to browser: **yes** (it’s part of the client JS chunks)
 - Regardless of the rendering type (SSG or SSR), server and client components are both rendered on the server, and client components will reexecute it on the browser after hydration completed.
 - Prefer fetching data in Server Components and pass as props.
+
+### Server rendering both `server components` and `client components` using different renderers, `server components` using `RSC renderer` while client components using `React DOM server renderer`, `React DOM server renderer` can execute hooks but also wont execute effect until hydration completes.
 
 ### Why did `console.log` inside a Client Component print on the server?
 
@@ -87,6 +90,7 @@ It’s easiest to separate them:
 - It is a serialized React tree (server component results) plus **client component references**.
 - Those references let the client know _which_ client component boundaries exist and which JS chunks are needed.
 - Used to reconstruct the server component tree in client runtime
+- The reason React have to recreate a client-side tree instead of using the server rendered HTML is because `hydration` is not magic, it cant direct attach JS to the static HTML, have to create a `React Fiber Tree`(instance graph) first, it contains event handlers, wiring, hooks etc, the only way to create those structure is to run the render logic on the client at least once.
 
 So: the “placeholder” language in the docs is about the **RSC tree serialization**, not about “Client Components never render on the server”. Client Components can still participate in SSR HTML, but in the RSC payload they appear as boundaries/references.
 
