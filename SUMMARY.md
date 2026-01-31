@@ -1,5 +1,9 @@
 # Next.js App Router: Server vs Client Components (Mental Model)
 
+## Lab guides
+
+- Build matrix guide: see `app/build/BUILD_TESTS.md` (also rendered at `/build/guide`)
+
 This note is written for **App Router + React Server Components (RSC)**.
 
 ## TL;DR (the correct core idea)
@@ -82,6 +86,7 @@ It’s easiest to separate them:
 - This is **not HTML**.
 - It is a serialized React tree (server component results) plus **client component references**.
 - Those references let the client know _which_ client component boundaries exist and which JS chunks are needed.
+- Used to reconstruct the server component tree in client runtime
 
 So: the “placeholder” language in the docs is about the **RSC tree serialization**, not about “Client Components never render on the server”. Client Components can still participate in SSR HTML, but in the RSC payload they appear as boundaries/references.
 
@@ -141,7 +146,33 @@ What the browser typically uses on a full page load:
   ✅ Code
   ✅ Assets
   ✅ Static shells
+- Persists across reload
 
 # Next Router Cache
 
 - Mainly cached the RSC payload + route segments in memory
+- For subsequent navigation(revisit), no need extra network trip to refetch the RSC payload anymore
+- Wiped cached RSC payload on reload
+- Commonly used on client navigation (revisit, prefetch)
+
+## 9) HTML
+
+- `HTML` used for a) first paint, b) hydration target
+- React never render from the `HTML` directly
+- React render from data -> components -> DOM, HTML alone not enough, it has no props, component boundaries, module references
+
+## 10) PROD server vs DEV server
+
+- In production, we create one optimized build and deploy it, no on-the-fly changes after deployment
+- In production, pages are pre-rendered once during the build, in development, pages are pre-rendered on every request
+- Focus on /.next/app or /.next/static folder for built output, /app file similar to the folder structure for server component, will have html(.html) and **RSC payload**(.rsc) for each route entry
+- **RSC payload** in the output folder is representing a virtul DOM in a compact way
+- **RSC payload** for server component will be the server rendered result and the html text in it
+- **RSC payload** for client component has placeholder showing where the client component should go + references to the js file(pointing to /static files)
+
+## 11) All assets in dev tools
+
+- localhost: our initial index.html
+- xx.rsc: RSC payload for the particular route
+
+- Direct route visit (typing url in browser) will serve HTML, while client-side navigation uses RSC payload and Javascript chunks without additional server requests
