@@ -270,6 +270,15 @@ Flip it to `false`, rebuild, and compare.
 
 ---
 
+## Other interesting combinations for NextJS configuration
+
+- `force-static` page + `no-store` data fetching, the `no-store will kind of like swallowed as the static page is always prerender at build time and return the same HTML output
+- `force-dynamic` page + `force-cache` data fetching, this is valid as a dynamic page always fetched at request time but its with stable(cached) data
+- `force-static` page + dynamic values (cookies, headers, etc) will not throw error at build time, just treat it as **undefined** as no runtime value during build time
+- **Disabled cacheComponent**, but having server fetching with default(no-cache) + suspense will just work like static page as NextJS treat the data as cacheable and will resolved it during pre-render instead of defer it to request time
+
+---
+
 ## Notes on “industry standard” patterns used here
 
 - Theme switching: `next-themes` + Tailwind `dark:` via `.dark` class is a very common production pattern.
