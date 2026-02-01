@@ -55,7 +55,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <div className="mx-auto flex w-full max-w-7xl">
         {/* Desktop sidebar */}
-        <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-[--sidebar-current-width)] shrink-0 border-r border-black/10 bg-white/60 backdrop-blur md:block dark:border-white/15 dark:bg-zinc-950/40">
+        <aside className="sticky top-14 hidden h-[calc(100dvh-3.5rem)] w-[var(--sidebar-current-width)] shrink-0 overflow-y-auto overscroll-contain border-r border-black/10 bg-white/60 backdrop-blur md:block dark:border-white/15 dark:bg-zinc-950/40">
           <SidebarNav items={navItems} />
         </aside>
 
@@ -77,7 +77,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 Close
               </button>
             </div>
-            <SidebarNav items={navItems} />
+            <div className="h-[calc(100dvh-3.5rem)] overflow-y-auto overscroll-contain">
+              <SidebarNav items={navItems} />
+            </div>
           </aside>
         </div>
 
