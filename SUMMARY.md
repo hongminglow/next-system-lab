@@ -180,3 +180,12 @@ What the browser typically uses on a full page load:
 - xx.rsc: RSC payload for the particular route
 
 - Direct route visit (typing url in browser) will serve HTML, while client-side navigation uses RSC payload and Javascript chunks without additional server requests
+
+## 12) Prefetching
+
+- **Prefetching** works differently in `app router` vs `pages router`.
+  - `pages router` prefetch = it mainly prefetches **JS + page data** (no RSC concept there)
+  - `app router` prefetch = it mainly prefetches **RSC/Flight payload** (and enough route segments to make navigation instant). With `cacheComponents: true` / PPR-style, what gets prefetched can be a **partial tree** (e.g. up to a Suspense boundary / static shell) instead of “everything”.
+- **Prefetch** didnt care about FCP, it’s for _client side navigation optimization_ (instant transitions), not first paint.
+- Cached RSC payload (Next Router Cache) will wipe on **any full reload** (CTRL + R also clears it), while CTRL + SHIFT + R mainly affects the **browser HTTP cache** for assets.
+- As long as we didnt make our page **dynamic**, and once RSC payload cached in the router cache, across client side navigation, it will reuse it. So even wrapped with **Suspense** and **CacheComponent** enabled, its not saying that particular component will always being executed on request; it just saying it can be streamed / deferred, and the client might still reuse a previously fetched snapshot unless we force refresh (e.g. `router.refresh()`).
