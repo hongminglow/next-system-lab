@@ -31,6 +31,8 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Regardless of the rendering type (SSG or SSR), server and client components are both rendered on the server, and client components will reexecute it on the browser after hydration completed.
 - Prefer fetching data in Server Components and pass as props.
 
+**_RSC payload is serialized as data have to be serialized (encode message into bytes using shared rules) to transmit over network then deserialized by the receiver to access the complete messages_**
+
 ### Server rendering both `server components` and `client components` using different renderers, `server components` using `RSC renderer` while client components using `React DOM server renderer`, `React DOM server renderer` can execute hooks but also wont execute effect until hydration completes.
 
 ### Why did `console.log` inside a Client Component print on the server?
@@ -63,7 +65,7 @@ Important gotcha:
 - “HTML of both client and server components are generated during build time” is only true for **SSG** routes.
 - For **SSR**, that HTML is generated **per request**.
 - **ISR** = **SSG** with revalidation (regenerate HTML in the background after a certain time).
-- **ISR** will not auto build and replace HTML, it will used the first generated HTML until revalidation happens, thn it will regenerate the HTML and replace the CDN cached HTML, usually happens in CDN edge functions.
+- **ISR** will not auto build and replace HTML, it will used the first generated HTML until revalidation happens, thn it will regenerate the HTML and replace the CDN cached HTML, usually happens in CDN edge functions (depends, might in a self hosted Node server or serverless runtime as well).
 - Accessing any of those in any segments of the routes (no matter how deep it is) will cause the page to be force rendered at full **SSR** as signal will be bubbled up:
   - `cookies()`
   - `headers()`
@@ -82,7 +84,7 @@ It’s easiest to separate them:
 ### HTML
 
 - Browser receives HTML (possibly streamed) for the document.
-- This HTML contains the DOM markup the user sees immediately.
+- This HTML contains the DOM markup the user sees immediately(first paint).
 
 ### RSC / Flight payload
 
@@ -189,3 +191,20 @@ What the browser typically uses on a full page load:
 - **Prefetch** didnt care about FCP, it’s for _client side navigation optimization_ (instant transitions), not first paint.
 - Cached RSC payload (Next Router Cache) will wipe on **any full reload** (CTRL + R also clears it), while CTRL + SHIFT + R mainly affects the **browser HTTP cache** for assets.
 - As long as we didnt make our page **dynamic**, and once RSC payload cached in the router cache, across client side navigation, it will reuse it. So even wrapped with **Suspense** and **CacheComponent** enabled, its not saying that particular component will always being executed on request; it just saying it can be streamed / deferred, and the client might still reuse a previously fetched snapshot unless we force refresh (e.g. `router.refresh()`).
+
+## 13) NextJS Data Fetching
+
+- Recommended data fetching to prevent `waterfall network request`, separate component into smaller pieces and fetch data in each component instead of fetching all data in parent component and pass down as props.
+- If cases like component B wrapping component C, B have to await for data, can trigger both network request in parallel and then await one of the promises in component B
+- If component B wraps component C and B must await its own data, you can still start both requests in parallel and await B's result while passing the child's promise down. Example:
+
+```ts
+// start both requests (non-blocking)
+const parentParallelPromise = fetchTime(origin, "parent-parallel", ms);
+const childParallelPromise = fetchTime(origin, "child-parallel", ms);
+
+// await B's result; C can `await childParallelPromise` when needed
+const parentParallel = await parentParallelPromise;
+```
+
+- If both components going to use the same data, expected trigger the network request at the lowest common ancestor and pass down as props to prevent duplicate network request.

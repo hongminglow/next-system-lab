@@ -24,6 +24,13 @@ Open [http://localhost:3000/tests](http://localhost:3000/tests) to see the list.
 - B) `use cache` directive: `/tests/use-cache`
 - C) React `cache()` vs `fetch(..., { cache: 'force-cache' })`: `/tests/cache-vs-force-cache`
 - D) CMS strategy: SSR vs ISR vs “PPR-style”: `/tests/cms`
+- E) Waterfall vs parallel fetching: `/tests/waterfall`
+- F) Parallel Routes (`@slot`): `/tests/parallel`
+
+You can also explore the build-time behavior matrix:
+
+- Build matrix index: `/build`
+- Build guide: `/build/guide` (source: `app/build/BUILD_TESTS.md`)
 
 You can start editing the pages under `app/tests/*`. The dev server auto-updates as you edit.
 
