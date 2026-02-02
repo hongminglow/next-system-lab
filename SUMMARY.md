@@ -69,7 +69,7 @@ Important gotcha:
 - Accessing any of those in any segments of the routes (no matter how deep it is) will cause the page to be force rendered at full **SSR** as signal will be bubbled up:
   - `cookies()`
   - `headers()`
-  - `connection()`
+  - `connection()` (ensure component below this line excluded from prerendering)
   - fetch with `{ cache: 'no-store' }`
   - dynamic = `force-dynamic`
 
@@ -114,6 +114,7 @@ Typical reasons a subtree becomes “dynamic”:
 
 - Hydration is “attach event listeners + make UI interactive” for Client Components.
 - Server Components do not hydrate (there’s no client JS for them).
+- Only happen once per page instance, subsequent RSC payload streamed over **will not rehydrate** again
 
 What the browser typically uses on a full page load:
 
@@ -208,3 +209,23 @@ const parentParallel = await parentParallelPromise;
 ```
 
 - If both components going to use the same data, expected trigger the network request at the lowest common ancestor and pass down as props to prevent duplicate network request.
+
+## 14) Revalidate
+
+- We can cache server components, functions and even api response using `use-cache` directives and `cache-tag` to tag them with a key
+- There are total of 4 options available to revalidate those cached results :
+  a) revalidatePath : invalidates specific page or layout paths
+  b) revalidateTag : ONLY invalidates data with specific tags across all pages that use those tags
+  c) cacheLife : provide options `revalidate`,e.g. cacheLife({revalidate: 60}) to ensure a revalidate for every 60 seconds
+  d) updateTag : update cached data on-demand for a specific cache tag from within Server Actions
+- All options only can be called in server components, route handlers or server actions, never allow to be called in client component
+- `revalidateTag` or `updateTag` will mark the tag or cache as staled, next request or render boundary will stream over the new RSC payload
+- Latest RSC payload will be streamed over on HTTP Post response after user revalidated it and client will then reconstruct the tree, perform incremental reconcilation to compare the RSC payload and update as necessary
+
+**_ Good To Know_**
+
+- `revalidateTag`(tag, { expire: 0 }), this can ensure the data will be expired immediately
+- recommended to use `updateTag` in server actions for immediate updates instead
+- `updateTag` only can be called inside the `server actions`, not even in route handlers
+- `updateTag` will not showing staled content on next request, while `revalidateTag` with profile **(max)** will kind of having a SWR(stale-while-revalidate) behaviour, will show staled content while fresh data loading in background
+- When using **profile="max"**, `revalidateTag` will have a intended behaviour where it will marked the tagged data as stale, and only fetched the fresh data for the pages that are next visited, which mean its normal for seeing the staled content for **at least once** before updated to the latest content.
