@@ -1,36 +1,31 @@
 export default function TestsIndex() {
-  return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Next.js experiments
-      </h1>
-      <p className="text-sm text-zinc-700 dark:text-zinc-300">
-        Each route is a tiny, isolated test you can revisit later.
-      </p>
+	return (
+		<div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+			<h1 className="text-2xl font-semibold tracking-tight">Next.js experiments</h1>
+			<p className="text-sm text-zinc-700 dark:text-zinc-300">
+				Each route is a tiny, isolated test you can revisit later.
+			</p>
 
-      <div className="flex flex-col gap-3 text-sm">
-        <a className="underline" href="/tests/rendering">
-          A) Server vs Client rendering
-        </a>
-        <a className="underline" href="/tests/use-cache">
-          B) use cache (page vs component)
-        </a>
-        <a className="underline" href="/tests/swr-tag">
-          B2) SWR-ish cache + revalidateTag
-        </a>
-        <a className="underline" href="/tests/cache-vs-force-cache">
-          C) React cache() vs fetch force-cache
-        </a>
-        <a className="underline" href="/tests/cms">
-          D) CMS changes: SSR vs ISR vs PPR-style
-        </a>
-        <a className="underline" href="/tests/waterfall">
-          E) Waterfall vs parallel fetching
-        </a>
-        <a className="underline" href="/tests/parallel">
-          F) Parallel routes (@slots)
-        </a>
-      </div>
-    </div>
-  );
+			<div className="flex flex-col gap-3 text-sm">
+				<a className="underline" href="/tests/rendering">
+					A) Server vs Client rendering
+				</a>
+				<a className="underline" href="/tests/use-cache">
+					B) use cache (page vs component)
+				</a>
+				<a className="underline" href="/tests/cache-vs-force-cache">
+					C) React cache() vs fetch force-cache
+				</a>
+				<a className="underline" href="/tests/cms">
+					D) CMS changes: SSR vs ISR vs PPR-style
+				</a>
+				<a className="underline" href="/tests/waterfall">
+					E) Waterfall vs parallel fetching
+				</a>
+				<a className="underline" href="/tests/parallel">
+					F) Parallel routes (@slots)
+				</a>
+			</div>
+		</div>
+	);
 }

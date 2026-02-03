@@ -22,6 +22,10 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Can access: databases, filesystem, private env vars, `cookies()`/`headers()` etc.
 - Ships to browser: **no** (except serialized results)
 - Not allowed to execute hooks or Browser API
+- Fetch data from databases or APIs close to the source
+- Use API keys, tokens, and other secrets without exposing them to the client
+- Reduce the amount of JavaScript sent to the browser.
+- Improve **FCP** and stream content progressively to the client
 
 **Client Component** (`"use client"`)
 
@@ -30,8 +34,12 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Ships to browser: **yes** (it’s part of the client JS chunks)
 - Regardless of the rendering type (SSG or SSR), server and client components are both rendered on the server, and client components will reexecute it on the browser after hydration completed.
 - Prefer fetching data in Server Components and pass as props.
+- Able to access browser-only API, state, hooks
 
 **_RSC payload is serialized as data have to be serialized (encode message into bytes using shared rules) to transmit over network then deserialized by the receiver to access the complete messages_**
+
+- Both server and client components can actually shared the same data using `React.cache` + `Context`
+- Write a server fetching function wrapped with `React.cache` to cache the function -> trigger network request at layout (don't await it) -> passing the data into providers -> server component will call that server fetching function once again (but with await this time), since its same request, the cached data will be reused -> client component will retrieve the promised data from the useContext hooks
 
 ### Server rendering both `server components` and `client components` using different renderers, `server components` using `RSC renderer` while client components using `React DOM server renderer`, `React DOM server renderer` can execute hooks but also wont execute effect until hydration completes.
 
@@ -114,7 +122,8 @@ Typical reasons a subtree becomes “dynamic”:
 
 - Hydration is “attach event listeners + make UI interactive” for Client Components.
 - Server Components do not hydrate (there’s no client JS for them).
-- Only happen once per page instance, subsequent RSC payload streamed over **will not rehydrate** again
+- Only happen once per **Client Component subtree** when its HTML is first revealed/attached, subsequent RSC payload streamed over **will not rehydrate** again
+- If the content of the client components in **Suspense** e.g. A list of interactable components, this portion of client components will be streamed over and hydration only happen once again for this particular newly inserted server-rendered markup.
 
 What the browser typically uses on a full page load:
 
@@ -162,6 +171,24 @@ What the browser typically uses on a full page load:
 - Wiped cached RSC payload on reload
 - Commonly used on client navigation (revisit, prefetch)
 
+# React.cache
+
+- Mainly cached the function results in server/edge memory
+- Effective per request / per render, ONLY scoped to current request
+- NOT a durable cross-request cache
+- Mainly to deduplicate repeated DB reads or computed values during one render
+
+# Data cache
+
+- Mainly cached the HTTP response from fetch API in server/edge memory
+- Can be cross-request
+- Also deduplicate repeated fetches across render/requests
+
+# `use cache` directive
+
+- cached the component/function output into Next incremental cache
+- Can be cross-request, shared across user
+
 ## 9) HTML
 
 - `HTML` used for a) first paint, b) hydration target
@@ -186,6 +213,9 @@ What the browser typically uses on a full page load:
 
 ## 12) Prefetching
 
+- **Prefetching** only works in production mode
+- **Prefetching** will ONLY fetched the full route when its static page, if its dynamic page will ONLY fetcheed up to the loading.js
+- By default the client cache (from `prefetch`) will persists for **_5 min_** only
 - **Prefetching** works differently in `app router` vs `pages router`.
   - `pages router` prefetch = it mainly prefetches **JS + page data** (no RSC concept there)
   - `app router` prefetch = it mainly prefetches **RSC/Flight payload** (and enough route segments to make navigation instant). With `cacheComponents: true` / PPR-style, what gets prefetched can be a **partial tree** (e.g. up to a Suspense boundary / static shell) instead of “everything”.
@@ -229,3 +259,25 @@ const parentParallel = await parentParallelPromise;
 - `updateTag` only can be called inside the `server actions`, not even in route handlers
 - `updateTag` will not showing staled content on next request, while `revalidateTag` with profile **(max)** will kind of having a SWR(stale-while-revalidate) behaviour, will show staled content while fresh data loading in background
 - When using **profile="max"**, `revalidateTag` will have a intended behaviour where it will marked the tagged data as stale, and only fetched the fresh data for the pages that are next visited, which mean its normal for seeing the staled content for **at least once** before updated to the latest content.
+- `RevalidatePath` vs `router.refresh()`
+  a) `revalidatePath` only can be executed in server side, while `router.refresh()` can only be executed in client side
+  b) `router.refresh()` most likely to revalidate the content for the client itself (refetch RSC payload), while `revalidatePath` will revalidate the specific path provided, will affect all subsequent requests to that path across all clients
+
+## 15) Performance Optimization
+
+- During production, NextJS will automatically enabled below optimizations without additonal configuration :
+  ✅ Server components
+  ✅ Code Splitting
+  ✅ Prefetching
+  ✅ Static rendering (SSG)
+  ✅ Caching
+- Other optimizations that required manual configuration :
+  ✅ Partial Prerendering (PPR) using `Suspense` boundaries
+  ✅ Incremental Caching using `cache()` directive
+  ✅ Image Optimization using `next/image` component
+  ✅ Font Optimization using `next/font` component
+  ✅ Analytics using `@vercel/analytics` package
+  ✅ CDN caching using proper `Cache-Control` headers
+  ✅ Parallel Data Fetching to reduce network request waterfall
+  ✅ Use `public` folder for static assets to leverage browser caching
+  ✅ Streaming using `Suspense` and loading UI to progressively sending UI from server to client
