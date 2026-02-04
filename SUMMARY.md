@@ -166,10 +166,12 @@ What the browser typically uses on a full page load:
 
 # Next Router Cache
 
-- Mainly cached the RSC payload + route segments in memory
+- Mainly cached the RSC payload + `Route Segments` in memory
+- `Route Segments` means the individual parts of the route tree (layouts, pages, components, parallel routes etc), each has its own RSC subtree, NextJS bundled them into one Flight response, so every navigation will see only 1 request but actually its containing multiple segment payloads
 - For subsequent navigation(revisit), no need extra network trip to refetch the RSC payload anymore
 - Wiped cached RSC payload on reload
 - Commonly used on client navigation (revisit, prefetch)
+- Nextjs will decide whether to reuse the RSC payload on router cache based on the **flag**, there is a **dynamic flag** on each route segments, it will reuse the static segment, and refetch the RSC payload for those dynamic segments
 
 # React.cache
 
@@ -222,12 +224,15 @@ What the browser typically uses on a full page load:
 - **Prefetch** didnt care about FCP, it’s for _client side navigation optimization_ (instant transitions), not first paint.
 - Cached RSC payload (Next Router Cache) will wipe on **any full reload** (CTRL + R also clears it), while CTRL + SHIFT + R mainly affects the **browser HTTP cache** for assets.
 - As long as we didnt make our page **dynamic**, and once RSC payload cached in the router cache, across client side navigation, it will reuse it. So even wrapped with **Suspense** and **CacheComponent** enabled, its not saying that particular component will always being executed on request; it just saying it can be streamed / deferred, and the client might still reuse a previously fetched snapshot unless we force refresh (e.g. `router.refresh()`).
+- Can use `router.prefetch(/xxx)` to prefetch specific routes programmatically
 
 ## 13) NextJS Data Fetching
 
 - Recommended data fetching to prevent `waterfall network request`, separate component into smaller pieces and fetch data in each component instead of fetching all data in parent component and pass down as props.
 - If cases like component B wrapping component C, B have to await for data, can trigger both network request in parallel and then await one of the promises in component B
 - If component B wraps component C and B must await its own data, you can still start both requests in parallel and await B's result while passing the child's promise down. Example:
+- NextJS with its **Request Memoization** mechanism will ensure that the fetch request with `Get` or `Head` with the same URL and options in a single render will be combine into one request and deduplicated, so even component C awaits the same fetch, it will reuse the same network request started in parent component B.
+- **Request Memoization** is scoped to the lifetime of a request
 
 ```ts
 // start both requests (non-blocking)
@@ -262,6 +267,7 @@ const parentParallel = await parentParallelPromise;
 - `RevalidatePath` vs `router.refresh()`
   a) `revalidatePath` only can be executed in server side, while `router.refresh()` can only be executed in client side
   b) `router.refresh()` most likely to revalidate the content for the client itself (refetch RSC payload), while `revalidatePath` will revalidate the specific path provided, will affect all subsequent requests to that path across all clients
+  c) `router.refresh()` will clear **Router Cache**, remain **Full Route Cache** and **Data Cache**, while `revalidatePath` will clear both **Full Route Cache** and **Data Cache** for that particular path
 
 ## 15) Performance Optimization
 
@@ -280,4 +286,4 @@ const parentParallel = await parentParallelPromise;
   ✅ CDN caching using proper `Cache-Control` headers
   ✅ Parallel Data Fetching to reduce network request waterfall
   ✅ Use `public` folder for static assets to leverage browser caching
-  ✅ Streaming using `Suspense` and loading UI to progressively sending UI from server to client
+  ✅ Streaming using `Suspense` and loading UI(loading.js) to progressively sending UI from server to client
