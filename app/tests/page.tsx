@@ -18,9 +18,6 @@ export default function TestsIndex() {
         <a className="underline" href="/tests/use-cache">
           B) use cache (page vs component)
         </a>
-        <a className="underline" href="/tests/swr-tag">
-          B2) SWR-ish cache + revalidateTag
-        </a>
         <a className="underline" href="/tests/cache-vs-force-cache">
           C) React cache() vs fetch force-cache
         </a>

@@ -3,11 +3,6 @@ import { safeFetchJson } from "../_components/ServerFetch";
 
 const TIME_API = "https://worldtimeapi.org/api/timezone/Etc/UTC";
 
-async function SubServerComponent() {
-	await safeFetchJson(TIME_API);
-	return <p>Inner Children </p>;
-}
-
 export default async function Page() {
 	"use cache";
 	const builtAt = new Date().toISOString();
@@ -20,7 +15,6 @@ export default async function Page() {
 				title="Static (basic)"
 				summary="No fetch, no request-bound APIs, no client components. This should be a clean baseline for a fully static route."
 			/>
-
 			<section className="rounded-lg border border-black/10 bg-white/70 p-4 text-sm dark:border-white/15 dark:bg-zinc-950/40">
 				<div className="font-semibold">Server render</div>
 				<div className="mt-2 text-zinc-700 dark:text-zinc-300">
@@ -32,8 +26,6 @@ export default async function Page() {
 					</div>
 				</div>
 			</section>
-
-			<SubServerComponent />
 		</div>
 	);
 }

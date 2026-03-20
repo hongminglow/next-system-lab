@@ -22,6 +22,10 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Can access: databases, filesystem, private env vars, `cookies()`/`headers()` etc.
 - Ships to browser: **no** (except serialized results)
 - Not allowed to execute hooks or Browser API
+- Fetch data from databases or APIs close to the source
+- Use API keys, tokens, and other secrets without exposing them to the client
+- Reduce the amount of JavaScript sent to the browser.
+- Improve **FCP** and stream content progressively to the client
 
 **Client Component** (`"use client"`)
 
@@ -30,8 +34,12 @@ This note is written for **App Router + React Server Components (RSC)**.
 - Ships to browser: **yes** (it’s part of the client JS chunks)
 - Regardless of the rendering type (SSG or SSR), server and client components are both rendered on the server, and client components will reexecute it on the browser after hydration completed.
 - Prefer fetching data in Server Components and pass as props.
+- Able to access browser-only API, state, hooks
 
 **_RSC payload is serialized as data have to be serialized (encode message into bytes using shared rules) to transmit over network then deserialized by the receiver to access the complete messages_**
+
+- Both server and client components can actually shared the same data using `React.cache` + `Context`
+- Write a server fetching function wrapped with `React.cache` to cache the function -> trigger network request at layout (don't await it) -> passing the data into providers -> server component will call that server fetching function once again (but with await this time), since its same request, the cached data will be reused -> client component will retrieve the promised data from the useContext hooks
 
 ### Server rendering both `server components` and `client components` using different renderers, `server components` using `RSC renderer` while client components using `React DOM server renderer`, `React DOM server renderer` can execute hooks but also wont execute effect until hydration completes.
 
@@ -114,7 +122,8 @@ Typical reasons a subtree becomes “dynamic”:
 
 - Hydration is “attach event listeners + make UI interactive” for Client Components.
 - Server Components do not hydrate (there’s no client JS for them).
-- Only happen once per page instance, subsequent RSC payload streamed over **will not rehydrate** again
+- Only happen once per **Client Component subtree** when its HTML is first revealed/attached, subsequent RSC payload streamed over **will not rehydrate** again
+- If the content of the client components in **Suspense** e.g. A list of interactable components, this portion of client components will be streamed over and hydration only happen once again for this particular newly inserted server-rendered markup.
 
 What the browser typically uses on a full page load:
 
@@ -157,10 +166,30 @@ What the browser typically uses on a full page load:
 
 # Next Router Cache
 
-- Mainly cached the RSC payload + route segments in memory
+- Mainly cached the RSC payload + `Route Segments` in memory
+- `Route Segments` means the individual parts of the route tree (layouts, pages, components, parallel routes etc), each has its own RSC subtree, NextJS bundled them into one Flight response, so every navigation will see only 1 request but actually its containing multiple segment payloads
 - For subsequent navigation(revisit), no need extra network trip to refetch the RSC payload anymore
 - Wiped cached RSC payload on reload
 - Commonly used on client navigation (revisit, prefetch)
+- Nextjs will decide whether to reuse the RSC payload on router cache based on the **flag**, there is a **dynamic flag** on each route segments, it will reuse the static segment, and refetch the RSC payload for those dynamic segments
+
+# React.cache
+
+- Mainly cached the function results in server/edge memory
+- Effective per request / per render, ONLY scoped to current request
+- NOT a durable cross-request cache
+- Mainly to deduplicate repeated DB reads or computed values during one render
+
+# Data cache
+
+- Mainly cached the HTTP response from fetch API in server/edge memory
+- Can be cross-request
+- Also deduplicate repeated fetches across render/requests
+
+# `use cache` directive
+
+- cached the component/function output into Next incremental cache
+- Can be cross-request, shared across user
 
 ## 9) HTML
 
@@ -186,18 +215,24 @@ What the browser typically uses on a full page load:
 
 ## 12) Prefetching
 
+- **Prefetching** only works in production mode
+- **Prefetching** will ONLY fetched the full route when its static page, if its dynamic page will ONLY fetcheed up to the loading.js
+- By default the client cache (from `prefetch`) will persists for **_5 min_** only
 - **Prefetching** works differently in `app router` vs `pages router`.
   - `pages router` prefetch = it mainly prefetches **JS + page data** (no RSC concept there)
   - `app router` prefetch = it mainly prefetches **RSC/Flight payload** (and enough route segments to make navigation instant). With `cacheComponents: true` / PPR-style, what gets prefetched can be a **partial tree** (e.g. up to a Suspense boundary / static shell) instead of “everything”.
 - **Prefetch** didnt care about FCP, it’s for _client side navigation optimization_ (instant transitions), not first paint.
 - Cached RSC payload (Next Router Cache) will wipe on **any full reload** (CTRL + R also clears it), while CTRL + SHIFT + R mainly affects the **browser HTTP cache** for assets.
 - As long as we didnt make our page **dynamic**, and once RSC payload cached in the router cache, across client side navigation, it will reuse it. So even wrapped with **Suspense** and **CacheComponent** enabled, its not saying that particular component will always being executed on request; it just saying it can be streamed / deferred, and the client might still reuse a previously fetched snapshot unless we force refresh (e.g. `router.refresh()`).
+- Can use `router.prefetch(/xxx)` to prefetch specific routes programmatically
 
 ## 13) NextJS Data Fetching
 
 - Recommended data fetching to prevent `waterfall network request`, separate component into smaller pieces and fetch data in each component instead of fetching all data in parent component and pass down as props.
 - If cases like component B wrapping component C, B have to await for data, can trigger both network request in parallel and then await one of the promises in component B
 - If component B wraps component C and B must await its own data, you can still start both requests in parallel and await B's result while passing the child's promise down. Example:
+- NextJS with its **Request Memoization** mechanism will ensure that the fetch request with `Get` or `Head` with the same URL and options in a single render will be combine into one request and deduplicated, so even component C awaits the same fetch, it will reuse the same network request started in parent component B.
+- **Request Memoization** is scoped to the lifetime of a request
 
 ```ts
 // start both requests (non-blocking)
@@ -229,3 +264,26 @@ const parentParallel = await parentParallelPromise;
 - `updateTag` only can be called inside the `server actions`, not even in route handlers
 - `updateTag` will not showing staled content on next request, while `revalidateTag` with profile **(max)** will kind of having a SWR(stale-while-revalidate) behaviour, will show staled content while fresh data loading in background
 - When using **profile="max"**, `revalidateTag` will have a intended behaviour where it will marked the tagged data as stale, and only fetched the fresh data for the pages that are next visited, which mean its normal for seeing the staled content for **at least once** before updated to the latest content.
+- `RevalidatePath` vs `router.refresh()`
+  a) `revalidatePath` only can be executed in server side, while `router.refresh()` can only be executed in client side
+  b) `router.refresh()` most likely to revalidate the content for the client itself (refetch RSC payload), while `revalidatePath` will revalidate the specific path provided, will affect all subsequent requests to that path across all clients
+  c) `router.refresh()` will clear **Router Cache**, remain **Full Route Cache** and **Data Cache**, while `revalidatePath` will clear both **Full Route Cache** and **Data Cache** for that particular path
+
+## 15) Performance Optimization
+
+- During production, NextJS will automatically enabled below optimizations without additonal configuration :
+  ✅ Server components
+  ✅ Code Splitting
+  ✅ Prefetching
+  ✅ Static rendering (SSG)
+  ✅ Caching
+- Other optimizations that required manual configuration :
+  ✅ Partial Prerendering (PPR) using `Suspense` boundaries
+  ✅ Incremental Caching using `cache()` directive
+  ✅ Image Optimization using `next/image` component
+  ✅ Font Optimization using `next/font` component
+  ✅ Analytics using `@vercel/analytics` package
+  ✅ CDN caching using proper `Cache-Control` headers
+  ✅ Parallel Data Fetching to reduce network request waterfall
+  ✅ Use `public` folder for static assets to leverage browser caching
+  ✅ Streaming using `Suspense` and loading UI(loading.js) to progressively sending UI from server to client
