@@ -21,6 +21,12 @@ export default function Home() {
           >
             Build matrix
           </a>
+          <a
+            className="cursor-pointer rounded-md border border-black/10 bg-white px-4 py-2 text-sm hover:bg-black/3 dark:border-white/15 dark:bg-zinc-950 dark:hover:bg-white/6"
+            href="/tests/i18n"
+          >
+            I18n demo
+          </a>
         </div>
       </div>
     </div>

@@ -90,3 +90,37 @@ export function IconPanelLeft(props: IconProps) {
     </svg>
   );
 }
+
+export function IconMinus(props: IconProps) {
+  const { title = "Minus", ...rest } = props;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden={title ? undefined : true}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
+export function IconPlus(props: IconProps) {
+  const { title = "Plus", ...rest } = props;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden={title ? undefined : true}
+      {...rest}
+    >
+      {title ? <title>{title}</title> : null}
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}

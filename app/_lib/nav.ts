@@ -27,6 +27,7 @@ export const navItems: NavItem[] = [
     children: [
       { label: "Main Test", href: "/tests", match: "exact" },
       { label: "Rendering", href: "/tests/rendering", match: "prefix" },
+      { label: "I18n state persistence", href: "/tests/i18n", match: "exact" },
       { label: "Use Cache", href: "/tests/use-cache", match: "prefix" },
       { label: "SWR + revalidateTag", href: "/tests/swr-tag", match: "exact" },
       {

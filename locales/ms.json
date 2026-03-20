@@ -1,0 +1,27 @@
+{
+  "I18nDemo": {
+    "badge": "demo next-intl",
+    "title": "Pertukaran bahasa ringkas dengan state klien yang kekal",
+    "description": "Halaman ini menggunakan locale berasaskan cookie. Bila bahasa ditukar, route semasa di-refresh supaya teks terjemahan berubah, tetapi counter dan nota tempatan masih kekal.",
+    "currentLocale": "Locale semasa",
+    "serverRefreshedAt": "Server dikemas kini pada",
+    "serverRefreshedNote": "Jika cap masa ini berubah selepas tukar bahasa, server memang render semula.",
+    "switcherTitle": "Bahasa",
+    "switcherDescription": "Butang ini mengemas kini cookie locale melalui server action, kemudian memanggil router.refresh() pada halaman semasa.",
+    "switchTo": "Tukar ke {locale}",
+    "localeName": "{locale, select, en {English} ms {Bahasa Melayu} other {Tidak diketahui}}",
+    "persistenceTitle": "State klien yang patut kekal selepas tukar locale",
+    "counterLabel": "Counter",
+    "draftLabel": "Nota draf",
+    "draftPlaceholder": "Taip sesuatu di sini, kemudian tukar bahasa",
+    "increment": "Tambah",
+    "decrement": "Kurang",
+    "reset": "Set semula state tempatan",
+    "mountedAt": "Komponen klien mula dipasang pada",
+    "mountedHint": "Jika masa ini kekal sama, komponen tidak di-mount semula.",
+    "pending": "Sedang menukar bahasa...",
+    "persistenceHint": "Counter, cap masa dan nota ini ialah nilai React useState biasa, bukan localStorage.",
+    "noteTitle": "Kenapa versi ini paling mudah",
+    "noteBody": "Pertukaran locale berasaskan cookie ialah cara paling mudah untuk mengekalkan state semasa tukar bahasa. Jika nanti anda guna route /en dan /ms, perubahan route boleh menyebabkan sebahagian tree di-mount semula, jadi biasanya state disimpan dalam URL, cookie, localStorage, atau provider di atas locale segment."
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "I18nDemo": {
+    "badge": "next-intl demo",
+    "title": "Simple locale switching with preserved client state",
+    "description": "This page uses a cookie-backed locale. Switching language refreshes the current route so the translated copy updates, while the local counter and draft note stay alive.",
+    "currentLocale": "Current locale",
+    "serverRefreshedAt": "Server refreshed at",
+    "serverRefreshedNote": "If this timestamp changes after switching language, the server really re-rendered.",
+    "switcherTitle": "Language",
+    "switcherDescription": "These buttons update a locale cookie through a server action, then call router.refresh() on the current page.",
+    "switchTo": "Switch to {locale}",
+    "localeName": "{locale, select, en {English} ms {Bahasa Melayu} other {Unknown}}",
+    "persistenceTitle": "Client state that should survive the locale change",
+    "counterLabel": "Counter",
+    "draftLabel": "Draft note",
+    "draftPlaceholder": "Type something here, then switch language",
+    "increment": "Increment",
+    "decrement": "Decrement",
+    "reset": "Reset local state",
+    "mountedAt": "Client component mounted at",
+    "mountedHint": "If this time stays the same, the component was preserved instead of remounted.",
+    "pending": "Switching language...",
+    "persistenceHint": "The counter, timestamp and note are plain React useState values, not localStorage.",
+    "noteTitle": "Why this version stays simple",
+    "noteBody": "Cookie-based locale switching is the easiest way to keep state during language changes. If you later move to /en and /ms routes, that route change can remount parts of the tree, so you would usually persist state in the URL, a cookie, localStorage, or a provider above the locale segment."
+  }
+}

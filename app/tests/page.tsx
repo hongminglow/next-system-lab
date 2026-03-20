@@ -12,6 +12,9 @@ export default function TestsIndex() {
         <a className="underline" href="/tests/rendering">
           A) Server vs Client rendering
         </a>
+        <a className="underline" href="/tests/i18n">
+          A2) next-intl locale switch + state persistence
+        </a>
         <a className="underline" href="/tests/use-cache">
           B) use cache (page vs component)
         </a>
