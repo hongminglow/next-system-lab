@@ -216,7 +216,7 @@ What the browser typically uses on a full page load:
 ## 12) Prefetching
 
 - **Prefetching** only works in production mode
-- **Prefetching** will ONLY fetched the full route when its static page, if its dynamic page will ONLY fetcheed up to the loading.js
+- **Prefetching** will ONLY fetched the full route when its static page, if its dynamic page will ONLY fetched up to the loading.js
 - By default the client cache (from `prefetch`) will persists for **_5 min_** only
 - **Prefetching** works differently in `app router` vs `pages router`.
   - `pages router` prefetch = it mainly prefetches **JS + page data** (no RSC concept there)
